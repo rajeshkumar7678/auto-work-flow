@@ -32,17 +32,26 @@ def parse_script_to_scenes(script):
     prompt = f"""
     Break this YouTube script into 15-20 highly granular visual scenes. 
     Each scene should only last 2-4 seconds to maintain a high-paced "Pattern Interrupt" style.
-    For each scene, provide a highly specific search keyword for stock footage (Pexels).
+    
+    CRITICAL: For each scene, provide a highly specific search keyword for stock footage (Pexels).
+    Pexels does NOT have copyrighted characters (e.g., No Spider-Man, No Marvel).
+    If the script mentions a trademarked character or movie, you MUST use 'Vibe-Based' or 'Descriptive' keywords instead.
+    
+    Examples:
+    - Instead of "Spider-Man", use "skyscrapers", "city skyline", "man climbing wall", or "action jumping".
+    - Instead of "Batman", use "dark moody city", "gothic architecture", or "mystery shadow".
+    - Instead of "iPhone", use "modern smartphone", "tech hands", or "futuristic gadget".
     
     Script:
     {script}
     
     Format your response as a JSON list of objects:
     [
-      {{"text": "sentence or phrase from script", "keyword": "search term"}},
+      {{"text": "phrase from script", "keyword": "generic visual keyword"}},
       ...
     ]
     """
+
 
     try:
         response = client.chat.completions.create(

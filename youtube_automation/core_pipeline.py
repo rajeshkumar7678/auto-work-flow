@@ -72,9 +72,15 @@ def run_youtube_pipeline(topic, language="English", duration="45-60 seconds", au
         
         # Step 5: Video Building
         print("\n[5/7] Building final video...")
-        output_name = f"{topic.replace(' ', '_')}_final.mp4"
+        
+        # Sanitize topic for filename (remove illegal characters like : | / \ ? * < > ")
+        import re
+        safe_topic = re.sub(r'[<>:"/\\|?*]', '', topic).replace(' ', '_')
+        output_name = f"{safe_topic}_final.mp4"
         output_path = f"output/{output_name}"
+        
         final_video = build_final_video(video_paths, voice_path, srt_path, output_path, durations=scene_durations)
+
         
         # Step 6: SEO Metadata Generation
         print("\n[6/7] Generating SEO metadata...")
