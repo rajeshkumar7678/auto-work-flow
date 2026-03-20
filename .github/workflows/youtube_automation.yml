@@ -1,0 +1,49 @@
+name: Scheduled YouTube Upload
+
+on:
+  schedule:
+    # Runs at 9am, 12pm, 3pm, 6pm, 9pm US Eastern Time
+    # 01:00, 13:00, 16:00, 19:00, 22:00 UTC
+    - cron: '0 1,13,16,19,22 * * *'
+  workflow_dispatch: # Allows manual trigger
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
+      - name: Install Python dependencies
+        run: |
+          pip install -r youtube_automation/requirements.txt
+
+      - name: Run Autonomous Agent
+        working-directory: youtube_automation
+        env:
+          # YouTube Auth (OAuth2)
+          YOUTUBE_TOKEN_JSON: ${{ secrets.YOUTUBE_TOKEN_JSON }}
+          CLIENT_SECRETS_JSON: ${{ secrets.CLIENT_SECRETS_JSON }}
+          
+          # API Keys
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+          PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+          XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
+          
+          # Configuration
+          LLM_PROVIDER: ${{ secrets.LLM_PROVIDER || 'openai' }}
+
+        run: python autonomous_agent.py

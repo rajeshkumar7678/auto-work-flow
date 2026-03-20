@@ -1,0 +1,11 @@
+openai
+elevenlabs
+requests
+python-dotenv
+ffmpeg-python
+pytz
+schedule
+pytrends
+google-api-python-client
+google-auth-oauthlib
+google-auth-httplib2

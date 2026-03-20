@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+
+# Environment
+.env
+youtube_automation/.env
+
+# Application Specific
+youtube_automation/assets/
+youtube_automation/output/
+youtube_automation/token.pickle
+youtube_automation/token.json
+youtube_automation/client_secret*.json
+
+# Credentials
+*.pickle
+*.json
+!youtube_automation/requirements.txt
+!youtube_automation/script_generator.py
+
+# Others
+.DS_Store
+Thumbs.db
