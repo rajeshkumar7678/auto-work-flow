@@ -1,13 +1,60 @@
 import os
 import textwrap
+import re
 
-def generate_srt(text, audio_duration, output_path="assets/captions.srt", words_per_caption=3):
+def format_srt_time(seconds):
+    hours = int(seconds // 3600)
+    minutes = int((seconds % 3600) // 60)
+    secs = int(seconds % 60)
+    millis = int((seconds * 1000) % 1000)
+    return f"{hours:02}:{minutes:02}:{secs:02},{millis:03}"
+
+def generate_srt(text=None, audio_duration=None, output_path="assets/captions.srt", words_per_caption=1, audio_path=None):
     """
-    Generates sentence-aware SRT captions. 
-    Detects punctuation to insert natural pauses and sync with the voiceover.
+    Generates sentence-aware SRT captions.
+    Tries to use Whisper for precise word-level timestamps.
+    Falls back to heuristic sync if Whisper fails.
     """
-    import re
-    # Split by sentences (keeping punctuation)
+    if audio_path:
+        try:
+            import whisper
+            print("🎙️ Generating precise word-by-word captions using Whisper...")
+            # Load tiny or base model for speed
+            model = whisper.load_model("base")
+            result = model.transcribe(audio_path, word_timestamps=True)
+            
+            captions = []
+            index = 1
+            for segment in result.get("segments", []):
+                for word_info in segment.get("words", []):
+                    start = format_srt_time(word_info["start"])
+                    end = format_srt_time(word_info["end"])
+                    word_text = word_info["word"].strip().upper()
+                    
+                    if not word_text:
+                        continue
+                        
+                    captions.append(str(index))
+                    captions.append(f"{start} --> {end}")
+                    captions.append(word_text)
+                    captions.append("")
+                    index += 1
+                    
+            with open(output_path, "w", encoding="utf-8") as f:
+                f.write("\n".join(captions))
+                
+            return output_path
+        except ImportError:
+            print("⚠️ 'openai-whisper' not installed. Falling back to heuristic sync.")
+        except Exception as e:
+            print(f"⚠️ Whisper failed: {e}. Falling back to heuristic sync.")
+
+    # --- FALLBACK HEURISTIC SYNC ---
+    if not text or not audio_duration:
+        print("❌ Cannot generate captions without text/audio_duration fallback.")
+        return None
+        
+    print("🎙️ Generating captions using heuristic sync (1 word per caption)...")
     sentences = re.split('([.!?]+)', text)
     processed_sentences = []
     for i in range(0, len(sentences)-1, 2):
@@ -18,13 +65,11 @@ def generate_srt(text, audio_duration, output_path="assets/captions.srt", words_
     total_words = len(text.split())
     if total_words == 0: return None
     
-    # Configuration for pauses
-    pause_per_sentence = 0.4 # Seconds of silence between sentences
+    pause_per_sentence = 0.4
     total_pause_time = len(processed_sentences) * pause_per_sentence
     
-    # Calculate duration per word excluding pause time
     usable_duration = audio_duration - total_pause_time
-    if usable_duration < 0: # Fallback if text is too long for duration
+    if usable_duration < 0:
         usable_duration = audio_duration * 0.8
         pause_per_sentence = (audio_duration * 0.2) / len(processed_sentences)
         
@@ -32,12 +77,12 @@ def generate_srt(text, audio_duration, output_path="assets/captions.srt", words_
     
     captions = []
     current_time = 0.0
+    index = 1
     
     for sentence in processed_sentences:
         s_words = sentence.split()
         if not s_words: continue
         
-        # Calculate how much time the words in this sentence take
         s_narration_dur = len(s_words) * duration_per_word
         s_duration_per_word = s_narration_dur / len(s_words)
         
@@ -45,20 +90,18 @@ def generate_srt(text, audio_duration, output_path="assets/captions.srt", words_
             chunk = s_words[i:i + words_per_caption]
             chunk_text = " ".join(chunk)
             
-            # Duration for this chunk
             chunk_duration = len(chunk) * s_duration_per_word
-            
             start_time = format_srt_time(current_time)
             end_time = format_srt_time(current_time + chunk_duration)
             
-            captions.append(f"{len(captions) // 4 + 1}")
+            captions.append(str(index))
             captions.append(f"{start_time} --> {end_time}")
             captions.append(chunk_text.upper())
             captions.append("")
             
             current_time += chunk_duration
+            index += 1
             
-        # Add the sentence pause after the last word of the sentence
         current_time += pause_per_sentence
 
     with open(output_path, "w", encoding="utf-8") as f:
@@ -66,24 +109,5 @@ def generate_srt(text, audio_duration, output_path="assets/captions.srt", words_
         
     return output_path
 
-def format_srt_time(seconds):
-    hours = int(seconds // 3600)
-    minutes = int((seconds % 3600) // 60)
-    secs = int(seconds % 60)
-    millis = int((seconds * 1000) % 1000)
-    return f"{hours:02}:{minutes:02}:{secs:02},{millis:03}"
-
 if __name__ == "__main__":
-    script_path = "assets/script.txt"
-    os.makedirs("assets", exist_ok=True)
-    
-    if not os.path.exists(script_path):
-        with open(script_path, "w", encoding="utf-8") as f:
-            f.write("Did you know your brain makes decisions before you do? It's true! Scientists have found that your subconscious mind starts acting seconds before you even realize you've made a choice.")
-            
-    with open(script_path, "r", encoding="utf-8") as f:
-        content = f.read()
-        
-    print("Generating captions...")
-    result = generate_srt(content, audio_duration=10.0) # Test with 10s duration
-    print(f"Captions saved to: {result}")
+    pass

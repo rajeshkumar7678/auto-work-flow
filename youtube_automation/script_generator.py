@@ -6,78 +6,44 @@ load_dotenv()
 
 def detect_topic_type(topic):
     topic = topic.lower()
-    if "joke" in topic or "jokes" in topic or "funny" in topic:
-        return "jokes"
-    if "fact" in topic or "facts" in topic or "did you know" in topic:
-        return "facts"
-    if "psychology" in topic or "mind" in topic:
-        return "psychology"
-    if "devotional" in topic or "spiritual" in topic or "faith" in topic or "god" in topic:
-        return "devotional"
-    return "general"
+    if "karma" in topic or "revenge" in topic or "justice" in topic:
+        return "karma"
+    if "mystery" in topic or "disappear" in topic or "unexplained" in topic or "secret" in topic:
+        return "mystery"
+    if "mindset" in topic or "billionaire" in topic or "success" in topic or "rich" in topic:
+        return "billionaire"
+    if "life lesson" in topic or "moral" in topic or "sad" in topic or "emotional" in topic:
+        return "emotional"
+    if "fact" in topic or "shocking" in topic or "crazy" in topic:
+        return "shocking_facts"
+    return "cinematic_story"
 
 def get_specialized_prompt(topic, topic_type, language, duration):
-    hook_instruction = "IMPORTANT: Start with a high-energy, high-impact HOOK in the first 3 seconds (e.g., 'Stop scrolling!', '99% of people don't know this...', 'This will change your life...')."
-    word_count_instruction = "STRICT REQUIREMENT: The script MUST be between 130 and 150 words total to ensure a duration of 45-60 seconds. Do not exceed 150 words."
+    hook_instruction = "IMPORTANT: Start with a high-energy, high-impact HOOK in the first 3 seconds (e.g., 'Nobody believed him until...', 'This terrifying secret was just exposed...', 'A homeless man did this, and then...')."
+    word_count_instruction = "STRICT REQUIREMENT: The script MUST be between 75 and 90 words total to ensure a fast-paced duration of 25-40 seconds."
+    story_instruction = "Focus on ONE emotional micro-story, ONE twist, and ONE emotional payoff. NO robotic lists. Make it feel cinematic."
     
-    if topic_type == "jokes":
-        return f"""
-        Create a hilarious YouTube Shorts script in {language}.
-        Topic: {topic}
-        Requirements:
-        - {hook_instruction}
-        - {word_count_instruction}
-        - Provide exactly 3-5 short, punchy jokes.
-        - End with: "If you laughed, like and subscribe for more!"
-        Return ONLY the spoken narration.
-        """
-    elif topic_type == "facts":
-        return f"""
-        Create an interesting YouTube Shorts script in {language}.
-        Topic: {topic}
-        Requirements:
-        - {hook_instruction}
-        - {word_count_instruction}
-        - Provide 5 mind-blowing facts about the topic.
-        - Use "Did you know?" style.
-        - End with: "Subscribe for more amazing facts!"
-        Return ONLY the spoken narration.
-        """
-    elif topic_type == "psychology":
-        return f"""
-        Create a fascinating YouTube Shorts script in {language}.
-        Topic: {topic}
-        Requirements:
-        - {hook_instruction}
-        - {word_count_instruction}
-        - Explain 3-5 psychology tricks or facts.
-        - Focus on dark psychology or human behavior.
-        - End with: "Like and subscribe to master your mind."
-        Return ONLY the spoken narration.
-        """
-    elif topic_type == "devotional":
-        return f"""
-        Create a peaceful and inspiring YouTube Shorts script in {language}.
-        Topic: {topic}
-        Requirements:
-        - {hook_instruction}
-        - {word_count_instruction}
-        - Provide an inspiring spiritual message or lesson.
-        - Tone should be calm, wise, and encouraging.
-        - End with: "Subscribe for your daily dose of peace."
-        Return ONLY the spoken narration.
-        """
+    base_prompt = f"""
+    Create a highly viral, fast-paced YouTube Shorts story in {language}.
+    Topic/Vibe: {topic}
+    Requirements:
+    - {hook_instruction}
+    - {word_count_instruction}
+    - {story_instruction}
+    """
+    
+    if topic_type == "karma":
+        return base_prompt + "\nStyle: Karma Story. Someone does something bad or good, and they get exactly what they deserve at the end in a shocking way."
+    elif topic_type == "mystery":
+        return base_prompt + "\nStyle: Mystery. Build suspense rapidly. Reveal a shocking, terrifying, or unbelievable truth at the very end."
+    elif topic_type == "billionaire":
+        return base_prompt + "\nStyle: Motivational Cinematic. A story of extreme doubt or struggle that ends in massive success or a brilliant mindset shift."
+    elif topic_type == "emotional":
+        return base_prompt + "\nStyle: Emotional Micro-Story. Touch the viewer's heart. A story of sacrifice, love, or a deep life lesson with a twist."
+    elif topic_type == "shocking_facts":
+        return base_prompt + "\nStyle: Shocking Story. Tell a cohesive story about a crazy historical event or unbelievable occurrence, not just a list of facts."
     else:
-        return f"""
-        Write a viral YouTube Shorts script IN {language}.
-        Topic: {topic}
-        Requirements:
-        - {hook_instruction}
-        - {word_count_instruction}
-        - Numbered points and fast pacing.
-        - End with: "If you enjoyed this, like and subscribe for more!"
-        Return ONLY the spoken narration.
-        """
+        return base_prompt + "\nStyle: Cinematic AI Story. Dark, moody, or inspiring narrative with a massive plot twist at the end."
 
 def generate_script(topic, duration="45-60 seconds", language="English"):
     provider = os.getenv("LLM_PROVIDER", "openai").lower()

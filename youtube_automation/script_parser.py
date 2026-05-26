@@ -27,27 +27,29 @@ def parse_script_to_scenes(script):
     else:
         # Fallback: simple sentence split with generic keywords
         sentences = [s.strip() for s in script.split(".") if s.strip()]
-        return [{"text": s, "keyword": "cinematic"} for s in sentences]
+        return [{"text": s, "scene_description": s, "emotion": "dramatic", "keywords": ["cinematic"]} for s in sentences]
 
     prompt = f"""
     Break this YouTube script into 15-20 highly granular visual scenes. 
     Each scene should only last 2-4 seconds to maintain a high-paced "Pattern Interrupt" style.
     
-    CRITICAL: For each scene, provide a highly specific search keyword for stock footage (Pexels).
-    Pexels does NOT have copyrighted characters (e.g., No Spider-Man, No Marvel).
-    If the script mentions a trademarked character or movie, you MUST use 'Vibe-Based' or 'Descriptive' keywords instead.
-    
-    Examples:
-    - Instead of "Spider-Man", use "skyscrapers", "city skyline", "man climbing wall", or "action jumping".
-    - Instead of "Batman", use "dark moody city", "gothic architecture", or "mystery shadow".
-    - Instead of "iPhone", use "modern smartphone", "tech hands", or "futuristic gadget".
+    For each scene, provide a detailed dictionary with:
+    1. "text": The exact phrase or segment of the script this visual corresponds to.
+    2. "scene_description": A highly descriptive, cinematic, and detailed description of the visual scene (perfect for generating a rich AI image).
+    3. "emotion": The core emotional tone (e.g., sad, happy, suspenseful, mysterious, billionaire mindset, dramatic, shocking).
+    4. "keywords": A list of 3-4 highly relevant search terms to find stock videos on Pexels/Pixabay (ordered from most specific to generic). Avoid copyrighted words.
     
     Script:
     {script}
     
     Format your response as a JSON list of objects:
     [
-      {{"text": "phrase from script", "keyword": "generic visual keyword"}},
+      {{
+        "text": "phrase from script",
+        "scene_description": "poor child walking in rain",
+        "emotion": "sad",
+        "keywords": ["rain", "child", "street", "cinematic"]
+      }},
       ...
     ]
     """
@@ -78,7 +80,7 @@ def parse_script_to_scenes(script):
     except Exception as e:
         print(f"⚠️  Script parsing failed: {e}. Falling back to simple split.")
         sentences = [s.strip() for s in script.split(".") if s.strip()]
-        return [{"text": s, "keyword": "cinematic"} for s in sentences]
+        return [{"text": s, "scene_description": s, "emotion": "dramatic", "keywords": ["cinematic"]} for s in sentences]
 
 if __name__ == "__main__":
     test_script = "Ever wondered why you forget names instantly? It is because your brain does not think they are important. Try this: repeat the name three times. You will never forget again."

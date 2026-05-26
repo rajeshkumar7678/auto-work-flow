@@ -15,21 +15,21 @@ LANGUAGE_OPTIONS = {
 
 def main():
     print("=" * 40)
-    print("   🎬 YouTube Automation Tool (Manual Mode)")
+    print("   YouTube Automation Tool (Manual Mode)")
     print("=" * 40)
 
     # --- Language selection ---
     print("\nSelect language:")
-    print("  [1] 🇺🇸 English")
-    print("  [2] 🇮🇳 Hindi")
+    print("  [1] English")
+    print("  [2] Hindi")
     lang_choice = input("Choice [1/2] (default: 1): ").strip() or "1"
     language = LANGUAGE_OPTIONS.get(lang_choice, "English")
-    print(f"✅ Language: {language}")
+    print(f"OK Language: {language}")
 
     # --- Topic selection ---
     print("\nHow do you want to pick the topic?")
-    print("  [1] 🔥 Auto-fetch from Google Trends")
-    print("  [2] ✏️  Enter my own topic")
+    print("  [1] Auto-fetch from Google Trends")
+    print("  [2] Enter my own topic")
     src = input("Choice [1/2] (default: 1): ").strip() or "1"
 
     if src == "1":
@@ -52,7 +52,7 @@ def main():
         print(f"  [{key}] {dur:<15}  ({label})")
     dur_choice = input("Choice [1/2/3] (default: 1): ").strip() or "1"
     duration, _ = DURATION_OPTIONS.get(dur_choice, DURATION_OPTIONS["1"])
-    print(f"\n✅ Duration: {duration}")
+    print(f"\nOK Duration: {duration}")
 
     # --- Run Pipeline ---
     try:
@@ -66,7 +66,7 @@ def main():
         
         # Manual Upload Confirmation
         print("\n" + "="*40)
-        print("🎬 VIDEO READY FOR UPLOAD!")
+        print("VIDEO READY FOR UPLOAD!")
         print("="*40)
         
         confirm = input("\nDo you want to upload this video to YouTube now? (y/n): ").strip().lower()
@@ -84,12 +84,12 @@ def main():
                 description=seo_meta.get("description", ""),
                 tags=seo_meta.get("tags", [])
             )
-            print(f"\n✨ SUCCESS! Your video is live at: https://youtu.be/{video_id}")
+            print(f"\nSUCCESS! Your video is live at: https://youtu.be/{video_id}")
         else:
             print(f"\nSkipping upload. You can find your video here: {video_path}")
 
     except Exception as e:
-        print(f"\n❌ Pipeline failed: {e}")
+        print(f"\nPipeline failed: {e}")
 
 if __name__ == "__main__":
     main()

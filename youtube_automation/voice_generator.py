@@ -6,12 +6,13 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Change this voice anytime — no API key needed!
-# Great options: en-US-GuyNeural, en-US-JennyNeural, en-IN-NeerjaNeural
-DEFAULT_EDGE_VOICE = os.getenv("EDGE_TTS_VOICE", "en-US-GuyNeural")
+# Great cinematic options: en-US-AndrewNeural, en-US-GuyNeural, en-US-JennyNeural
+DEFAULT_EDGE_VOICE = os.getenv("EDGE_TTS_VOICE", "en-US-AndrewNeural")
 
 
 async def _edge_tts_generate(text: str, voice: str, output_path: str):
-    communicate = edge_tts.Communicate(text, voice)
+    # Added rate and pitch for a deeper, cinematic storytelling feel
+    communicate = edge_tts.Communicate(text, voice, rate="-10%", pitch="-5Hz")
     await communicate.save(output_path)
 
 
@@ -22,7 +23,7 @@ def generate_voice(text, output_path="assets/voice.mp3", language="English"):
     2. Edge TTS    — FREE, natural neural voices (default fallback)
     """
     api_key = os.getenv("ELEVENLABS_API_KEY")
-    elevenlabs_voice_id = os.getenv("ELEVENLABS_VOICE_ID", "EXAVITQu4vr4xnSDxMaL")
+    elevenlabs_voice_id = os.getenv("ELEVENLABS_VOICE_ID", "sk_e010953bb85a9c3cc92f7f80b88ce7d81d9c869d9fc092ec")
 
     # --- Try ElevenLabs first ---
     if api_key:
@@ -47,10 +48,10 @@ def generate_voice(text, output_path="assets/voice.mp3", language="English"):
     # --- Fallback: Microsoft Edge TTS (FREE, neural quality) ---
     # Map language to Edge TTS voice
     voice_map = {
-        "English": os.getenv("EDGE_TTS_VOICE", "en-US-GuyNeural"),
+        "English": os.getenv("EDGE_TTS_VOICE", "en-US-AndrewNeural"),
         "Hindi": "hi-IN-MadhurNeural",
     }
-    voice = voice_map.get(language, "en-US-GuyNeural")
+    voice = voice_map.get(language, "en-US-AndrewNeural")
     
     print(f"🎙️  Generating voice via Microsoft Edge TTS (voice: {voice}, language: {language})...")
     asyncio.run(_edge_tts_generate(text, voice, output_path))

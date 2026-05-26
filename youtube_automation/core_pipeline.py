@@ -1,6 +1,6 @@
 import os
 import shutil
-from script_generator import generate_script
+from script_generator import generate_script, detect_topic_type
 from voice_generator import generate_voice
 from video_fetcher import fetch_background_video
 from caption_generator import generate_srt
@@ -45,21 +45,20 @@ def run_youtube_pipeline(topic, language="English", duration="45-60 seconds", au
         print("\n[3/7] Matching visual scenes (Multi-clip)...")
         scenes = parse_script_to_scenes(script)
         
+        # Ensure scenes list is not empty
+        if not scenes:
+            scenes = [{"text": script, "scene_description": topic, "emotion": "dramatic", "keywords": [topic]}]
+
         # Calculate durations for each scene to ensure perfect visual sync
         total_words = len(script.split())
         scene_durations = []
         for scene in scenes:
             scene_word_count = len(scene['text'].split())
             # Calculate duration proportion
-            proportion = scene_word_count / total_words
+            proportion = scene_word_count / total_words if total_words > 0 else (1.0 / len(scenes))
             scene_durations.append(audio_duration * proportion)
             
-        scene_keywords = [s['keyword'] for s in scenes]
-        
-        # Add the main topic as a fallback search if scenes are too specific
-        if not scene_keywords: scene_keywords = [topic]
-        
-        video_paths = fetch_multi_video_clips(scene_keywords)
+        video_paths = fetch_multi_video_clips(scenes)
         if not video_paths:
             print("⚠️  No specific clips found, falling back to general search.")
             video_paths = [fetch_background_video(topic, min_duration=audio_duration)]
@@ -67,7 +66,7 @@ def run_youtube_pipeline(topic, language="English", duration="45-60 seconds", au
         
         # Step 4: Caption Generation
         print("\n[4/7] Generating captions...")
-        srt_path = generate_srt(script, audio_duration)
+        srt_path = generate_srt(text=script, audio_duration=audio_duration, audio_path=voice_path)
         print(f"Captions saved to: {srt_path}")
         
         # Step 5: Video Building
@@ -79,7 +78,8 @@ def run_youtube_pipeline(topic, language="English", duration="45-60 seconds", au
         output_name = f"{safe_topic}_final.mp4"
         output_path = f"output/{output_name}"
         
-        final_video = build_final_video(video_paths, voice_path, srt_path, output_path, durations=scene_durations)
+        topic_type = detect_topic_type(topic)
+        final_video = build_final_video(video_paths, voice_path, srt_path, output_path, durations=scene_durations, mood=topic_type)
 
         
         # Step 6: SEO Metadata Generation
