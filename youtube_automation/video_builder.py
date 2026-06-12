@@ -1,7 +1,15 @@
 import os
+import sys
+try:
+    sys.stdout.reconfigure(encoding='utf-8')
+    sys.stderr.reconfigure(encoding='utf-8')
+except AttributeError:
+    pass
+
 import subprocess
 import shutil
 import json
+
 
 def _get_duration(ffprobe_bin, path):
     """Return media duration in seconds using ffprobe."""

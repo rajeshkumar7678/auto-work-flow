@@ -1,4 +1,11 @@
 import os
+import sys
+try:
+    sys.stdout.reconfigure(encoding='utf-8')
+    sys.stderr.reconfigure(encoding='utf-8')
+except AttributeError:
+    pass
+
 from core_pipeline import run_youtube_pipeline
 from trending_topics import pick_trending_topic
 
@@ -28,9 +35,10 @@ def main():
 
     # --- Topic selection ---
     print("\nHow do you want to pick the topic?")
-    print("  [1] Auto-fetch from Google Trends")
-    print("  [2] Enter my own topic")
-    src = input("Choice [1/2] (default: 1): ").strip() or "1"
+    print("  [1] Auto-fetch from Google Trends (Niche)")
+    print("  [2] Auto-fetch from Football / FIFA World Cup Trends (Real-time)")
+    print("  [3] Enter my own topic")
+    src = input("Choice [1/2/3] (default: 1): ").strip() or "1"
 
     if src == "1":
         n_input = input("\nEnter your niche (e.g. psychology, tech, fitness) [default: psychology]: ").strip()
@@ -39,8 +47,22 @@ def main():
         topic = pick_trending_topic(keywords=niche, interactive=True)
         if not topic:
             topic = input("No trending topics found. Enter topic manually: ").strip()
+    elif src == "2":
+        from football_trends import FootballTrendScout
+        scout = FootballTrendScout()
+        trends = scout.get_football_trends()
+        if not trends:
+            topic = input("No football trends found. Enter topic manually: ").strip()
+        else:
+            print("\n🔥 Real-time Football Trends Selected for You:")
+            for i, t in enumerate(trends, 1):
+                print(f"  [{i}] {t['topic']} (Score: {t['trend_score']}) - {t['reason']}")
+            choice = input(f"\nSelect a topic # [1-{len(trends)}] or Enter for #1: ").strip()
+            idx = int(choice) - 1 if choice.isdigit() and 1 <= int(choice) <= len(trends) else 0
+            topic = trends[idx]["topic"]
     else:
         topic = input("Enter the topic for your video: ").strip()
+
 
     if not topic:
         print("Topic cannot be empty.")

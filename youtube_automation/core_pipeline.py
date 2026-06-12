@@ -1,5 +1,13 @@
 import os
+import sys
+try:
+    sys.stdout.reconfigure(encoding='utf-8')
+    sys.stderr.reconfigure(encoding='utf-8')
+except AttributeError:
+    pass
+
 import shutil
+
 from script_generator import generate_script, detect_topic_type
 from voice_generator import generate_voice
 from video_fetcher import fetch_background_video
@@ -10,24 +18,35 @@ from upload_video import upload_video
 from trending_topics import get_trending_topics
 from cleanup_utils import cleanup_assets, cleanup_old_outputs
 
-def run_youtube_pipeline(topic, language="English", duration="45-60 seconds", auto_upload=False):
+def run_youtube_pipeline(topic, language="English", duration="45-60 seconds", auto_upload=False, content_mode=None):
     """
     Core pipeline logic that can be called by main.py (manual) 
     or autonomous_pipeline.py (automatic).
     """
+    if content_mode is None:
+        content_mode = os.getenv("CONTENT_MODE", "general").strip().lower()
+
     # [NEW] Pre-run cleanup: Delete outputs older than 2 days
     cleanup_old_outputs(days=2)
 
     print(f"\n🚀 Starting Pipeline for: '{topic}'")
 
-    print(f"   Language: {language} | Duration: {duration} | Auto-upload: {auto_upload}")
+    print(f"   Language: {language} | Duration: {duration} | Auto-upload: {auto_upload} | Mode: {content_mode}")
     print("-" * 40)
 
     try:
         # Step 1: Script Generation
         print(f"\n[1/7] Generating script in {language}...")
-        script = generate_script(topic, duration=duration, language=language)
+        
+        research_data = None
+        if content_mode == "football":
+            from content_researcher import ContentResearcher
+            researcher = ContentResearcher()
+            research_data = researcher.research_topic(topic)
+            
+        script = generate_script(topic, duration=duration, language=language, research_data=research_data)
         print("Script generated successfully.")
+
         
         # Step 2: Voice Generation
         print("\n[2/7] Generating voice...")
@@ -43,7 +62,8 @@ def run_youtube_pipeline(topic, language="English", duration="45-60 seconds", au
         from video_fetcher import fetch_multi_video_clips
         
         print("\n[3/7] Matching visual scenes (Multi-clip)...")
-        scenes = parse_script_to_scenes(script)
+        scenes = parse_script_to_scenes(script, content_mode=content_mode)
+
         
         # Ensure scenes list is not empty
         if not scenes:
@@ -53,10 +73,11 @@ def run_youtube_pipeline(topic, language="English", duration="45-60 seconds", au
         total_words = len(script.split())
         scene_durations = []
         for scene in scenes:
-            scene_word_count = len(scene['text'].split())
+            scene_word_count = len(scene.get('text', '').split())
             # Calculate duration proportion
             proportion = scene_word_count / total_words if total_words > 0 else (1.0 / len(scenes))
             scene_durations.append(audio_duration * proportion)
+
             
         video_paths = fetch_multi_video_clips(scenes)
         if not video_paths:
@@ -84,7 +105,7 @@ def run_youtube_pipeline(topic, language="English", duration="45-60 seconds", au
         
         # Step 6: SEO Metadata Generation
         print("\n[6/7] Generating SEO metadata...")
-        seo_meta, seo_path = generate_seo(topic)
+        seo_meta, seo_path = generate_seo(topic, research_data=research_data)
         print(f"SEO metadata saved to: {seo_path}")
         print(f"Viral Title: {seo_meta.get('title')}")
 

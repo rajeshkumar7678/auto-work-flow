@@ -1,8 +1,16 @@
 import os
+import sys
+try:
+    sys.stdout.reconfigure(encoding='utf-8')
+    sys.stderr.reconfigure(encoding='utf-8')
+except AttributeError:
+    pass
+
 import requests
 import random
 import shutil
 from dotenv import load_dotenv
+
 
 load_dotenv()
 
@@ -88,8 +96,12 @@ def fetch_pexels_video(query, output_path):
             
         selected = random.choice(videos[:5])
         video_files = selected.get("video_files", [])
+        if not video_files:
+            return None
+            
         portrait_files = [f for f in video_files if (f.get("width") or 0) < (f.get("height") or 1)]
         best = sorted(portrait_files or video_files, key=lambda f: (f.get("width") or 0), reverse=True)[0]
+
         
         v_resp = requests.get(best["link"], stream=True, timeout=10)
         with open(output_path, "wb") as f:
