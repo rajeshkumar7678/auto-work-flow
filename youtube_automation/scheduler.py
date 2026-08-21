@@ -15,21 +15,17 @@ except AttributeError:
 US_TZ = pytz.timezone("US/Eastern")
 
 # --- Daily Upload Schedule ---
-# 5 slots per day. Each slot has a content mode assigned:
+# 3 slots per day. Each slot has a content mode assigned:
 #   football  → Uses real-time FIFA/World Cup trends (FootballTrendScout + ContentResearcher)
 #   general   → Uses psychology/tech/AI niche trends (original flow)
 #
 # Slot assignment (US Eastern Time):
-#   09:00 ET → football  (Slot 1/5)
-#   12:00 ET → football  (Slot 2/5)
-#   15:00 ET → football  (Slot 3/5)
-#   18:00 ET → general   (Slot 4/5)
-#   21:00 ET → general   (Slot 5/5)
+#   12:00 ET → football  (Slot 1/3)
+#   18:00 ET → general   (Slot 2/3)
+#   21:00 ET → general   (Slot 3/3)
 
 UPLOAD_SCHEDULE = {
-    9:  "football",
     12: "football",
-    15: "football",
     18: "general",
     21: "general",
 }

@@ -24,11 +24,15 @@ class FootballTrendScout:
         if provider == "openai":
             self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
             self.model = "gpt-4o-mini"
-        elif provider in ["grok", "groq"]:
+        elif provider == "groq":
+            key = os.getenv("GROQ_API_KEY") or os.getenv("XAI_API_KEY")
+            self.client = OpenAI(api_key=key, base_url="https://api.groq.com/openai/v1")
+            self.model = "openai/gpt-oss-120b"
+        elif provider == "grok":
             key = os.getenv("XAI_API_KEY") or os.getenv("GROQ_API_KEY")
             if key and key.startswith("gsk_"):
                 self.client = OpenAI(api_key=key, base_url="https://api.groq.com/openai/v1")
-                self.model = "llama-3.3-70b-versatile"
+                self.model = "openai/gpt-oss-120b"
             else:
                 self.client = OpenAI(api_key=key, base_url="https://api.x.ai/v1")
                 self.model = "grok-4-latest"

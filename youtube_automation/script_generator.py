@@ -158,11 +158,15 @@ def generate_script(topic, duration="45-60 seconds", language="English", researc
     if provider == "openai":
         client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
         model = "gpt-4o-mini"
-    elif provider == "grok" or provider == "groq":
+    elif provider == "groq":
+        key = os.getenv("GROQ_API_KEY") or os.getenv("XAI_API_KEY")
+        client = OpenAI(api_key=key, base_url="https://api.groq.com/openai/v1")
+        model = "openai/gpt-oss-120b"
+    elif provider == "grok":
         key = os.getenv("XAI_API_KEY") or os.getenv("GROQ_API_KEY")
         if key and key.startswith("gsk_"):
             client = OpenAI(api_key=key, base_url="https://api.groq.com/openai/v1")
-            model = "llama-3.3-70b-versatile"
+            model = "openai/gpt-oss-120b"
         else:
             client = OpenAI(api_key=key, base_url="https://api.x.ai/v1")
             model = "grok-4-latest"
